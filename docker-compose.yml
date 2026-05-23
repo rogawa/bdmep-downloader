@@ -1,0 +1,9 @@
+services:
+  bdmep:
+    build: .
+    container_name: bdmep
+    restart: unless-stopped
+    ports:
+      - "5010:5000"
+    environment:
+      - PYTHONUNBUFFERED=1
