@@ -30,46 +30,6 @@ Esta ferramenta automatiza todas essas etapas, bastando preencher o formulário 
 - Download automático do arquivo ZIP com os dados
 - Log em tempo real do processo de automação
 
-## Instalação local
-
-### Pré-requisitos
-
-- Python 3.10 ou superior
-- pip
-
-### Passos
-
-```bash
-# Clone o repositório
-git clone https://github.com/ruiogawa/bdmep-downloader.git
-cd bdmep-downloader
-
-# Instale as dependências
-pip install flask requests playwright
-
-# Instale o navegador headless
-playwright install chromium
-playwright install-deps chromium
-
-# Execute a aplicação
-python Bdmep_app.py
-```
-
-Acesse em: `http://localhost:5000`
-
-### Com Docker
-
-```bash
-# Clone o repositório
-git clone https://github.com/ruiogawa/bdmep-downloader.git
-cd bdmep-downloader
-
-# Suba com Docker Compose
-docker compose up -d
-```
-
-Acesse em: `http://localhost:5010`
-
 ## Como usar
 
 1. Selecione o **tipo de estação** (Convencional ou Automática)
@@ -79,11 +39,82 @@ Acesse em: `http://localhost:5010`
 5. Selecione o **formato** de saída
 6. Clique em **Baixar Dados** e aguarde o download automático
 
-O log exibido na tela mostra cada etapa do processo em tempo real.
+O log exibido na tela mostra cada etapa do processo em tempo real. O download começa automaticamente assim que o arquivo estiver pronto.
+
+## Executar localmente no seu computador
+
+Prefere rodar no próprio computador? Basta ter Python instalado — não é necessário nenhuma configuração de servidor.
+
+### Pré-requisitos
+
+- [Python 3.10 ou superior](https://www.python.org/downloads/)
+- pip (incluído com o Python)
+
+### Linux e macOS
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/ruiogawa/bdmep-downloader.git
+cd bdmep-downloader
+
+# 2. Crie um ambiente virtual
+python3 -m venv venv
+source venv/bin/activate
+
+# 3. Instale as dependências
+pip install flask requests playwright
+playwright install chromium
+
+# 4. Execute
+python3 Bdmep_app.py
+```
+
+Abra o navegador em: **http://localhost:5000**
+
+### Windows
+
+```bat
+:: 1. Clone o repositório (ou baixe o ZIP e extraia)
+git clone https://github.com/ruiogawa/bdmep-downloader.git
+cd bdmep-downloader
+
+:: 2. Crie um ambiente virtual
+python -m venv venv
+venv\Scripts\activate
+
+:: 3. Instale as dependências
+pip install flask requests playwright
+playwright install chromium
+
+:: 4. Execute
+python Bdmep_app.py
+```
+
+Abra o navegador em: **http://localhost:5000**
+
+> **Nota Windows:** se `playwright install-deps` solicitar dependências adicionais do sistema, execute o comando com permissão de administrador.
+
+### Encerrando
+
+Para parar o servidor, pressione `Ctrl+C` no terminal onde o app está rodando.
+
+### Com Docker
+
+Se preferir usar Docker:
+
+```bash
+git clone https://github.com/ruiogawa/bdmep-downloader.git
+cd bdmep-downloader
+docker compose up -d
+```
+
+Acesse em: **http://localhost:5010**
+
+Para parar: `docker compose down`
 
 ## Detalhes técnicos
 
-A ferramenta utiliza automação de navegador (Playwright + Chromium headless) para interagir com o site do BDMEP, contornando a proteção anti-bot F5 BIG-IP que impede chamadas diretas à API. O processo completo — preenchimento do formulário, confirmação via link e download do arquivo — é executado automaticamente em segundo plano.
+A ferramenta utiliza automação de navegador (Playwright + Chromium headless) para interagir com o site do BDMEP, contornando a proteção anti-bot que impede chamadas diretas à API. O processo completo — preenchimento do formulário, confirmação e download do arquivo — é executado automaticamente em segundo plano.
 
 ## Dependências
 
