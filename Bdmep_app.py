@@ -83,10 +83,9 @@ HEADERS = {
     "Referer": f"{FRONTEND}/",
 }
 
-# Estações de referência para consultar variáveis disponíveis
 ESTACAO_REF = {
-    "M": "83377",   # Brasília convencional
-    "T": "A001",    # Brasília automática
+    "M": "83377",
+    "T": "A001",
 }
 
 jobs: dict = {}
@@ -161,12 +160,9 @@ def api_estacoes():
 
 @app.route("/api/variaveis")
 def api_variaveis():
-    tipo         = request.args.get("tipo", "D")          # D, H, M
-    tipo_estacao = request.args.get("tipo_estacao", "M")  # M, T
-
-    # Usa estação de referência adequada ao tipo de estação
-    estacao_ref = ESTACAO_REF.get(tipo_estacao, "83377")
-
+    tipo         = request.args.get("tipo", "D")
+    tipo_estacao = request.args.get("tipo_estacao", "M")
+    estacao_ref  = ESTACAO_REF.get(tipo_estacao, "83377")
     s = bdmep_session()
     r = s.get(f"{API_TEMPO}/BNDMET/atributos/{estacao_ref}/{tipo}", timeout=15)
     if r.status_code == 200 and r.text.startswith("["):
@@ -582,7 +578,8 @@ HTML = """<!DOCTYPE html>
 <title>BDMEP Downloader</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, -apple-system, sans-serif; background: #f0f4f8; color: #1a202c; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f0f4f8; color: #1a202c;
+    display: flex; flex-direction: column; min-height: 100vh; }
 
   header {
     background: linear-gradient(135deg, #1a4a7a 0%, #2563eb 100%);
@@ -593,7 +590,7 @@ HTML = """<!DOCTYPE html>
   header p  { font-size: 0.85rem; opacity: 0.85; margin-top: 2px; }
   .logo { font-size: 2rem; }
 
-  .container { max-width: 960px; margin: 0 auto; padding: 28px 20px; }
+  .container { max-width: 960px; margin: 0 auto; padding: 28px 20px; flex: 1; width: 100%; }
 
   .card {
     background: white; border-radius: 12px; padding: 24px;
@@ -617,8 +614,7 @@ HTML = """<!DOCTYPE html>
   .radio-btn label {
     display: inline-flex; align-items: center; padding: 7px 14px;
     border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;
-    font-size: 0.85rem; font-weight: 500; transition: all .15s; margin: 0;
-    background: white;
+    font-size: 0.85rem; font-weight: 500; transition: all .15s; margin: 0; background: white;
   }
   .radio-btn input:checked + label { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; }
 
@@ -692,6 +688,17 @@ HTML = """<!DOCTYPE html>
 
   .alert { padding: 12px 16px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 16px; }
   .alert-info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; }
+  .alert-warn { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+
+  footer {
+    background: #1e293b; color: #94a3b8; text-align: center;
+    padding: 20px 32px; font-size: 0.78rem; line-height: 1.8; margin-top: auto;
+  }
+  footer a { color: #60a5fa; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  footer .disclaimer {
+    color: #fbbf24; margin-bottom: 8px; font-size: 0.75rem;
+  }
 
   @media (max-width: 600px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 </style>
@@ -708,9 +715,16 @@ HTML = """<!DOCTYPE html>
 
 <div class="container">
 
+  <div class="alert alert-warn">
+    ⚠️ <strong>Ferramenta não oficial.</strong> Este projeto não tem vínculo com o INMET.
+    Os dados são obtidos diretamente do <a href="https://bdmep.inmet.gov.br" target="_blank" style="color:#92400e">BDMEP</a>
+    e são de responsabilidade exclusiva do INMET. O autor não oferece garantias sobre
+    disponibilidade, integridade ou precisão dos dados.
+  </div>
+
   <div class="alert alert-info">
     <strong>Como funciona:</strong> Preencha o formulário e clique <strong>Baixar Dados</strong>.
-    O app abre um navegador em segundo plano, clica em cada passo do formulário BDMEP,
+    O app abre um navegador em segundo plano, preenche o formulário BDMEP,
     confirma e baixa automaticamente — sem emails, sem cliques extras. Leva ~20–30 s.
   </div>
 
@@ -825,11 +839,20 @@ HTML = """<!DOCTYPE html>
     </div>
     <div id="erro-area" style="display:none; margin-top:16px;">
       <div class="alert" style="background:#fee2e2; border:1px solid #fca5a5; color:#991b1b;"
-           id="erro-msg" style="white-space:pre-wrap"></div>
+           id="erro-msg"></div>
     </div>
   </div>
 
 </div>
+
+<footer>
+  <div class="disclaimer">
+    ⚠️ Ferramenta não oficial — sem vínculo com o INMET. Dados de responsabilidade exclusiva do INMET.
+  </div>
+  Desenvolvido por <strong style="color:#e2e8f0">Rui Ogawa</strong> —
+  <a href="mailto:ruiogawa@gmail.com">ruiogawa@gmail.com</a> —
+  <a href="https://github.com/ruiogawa/bdmep-downloader" target="_blank">github.com/ruiogawa/bdmep-downloader</a>
+</footer>
 
 <script>
 let currentJobId = null;
@@ -840,17 +863,14 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("data-fim").value = new Date().toISOString().slice(0, 10);
   carregarEstacoes();
   carregarVariaveis();
-
-  // Quando muda tipo de estação: recarrega estações E variáveis
   document.querySelectorAll("input[name=tipo_estacao]").forEach(r =>
     r.addEventListener("change", () => {
       deselecionarTodos("lista-estacoes");
       deselecionarTodos("lista-variaveis");
       carregarEstacoes();
-      carregarVariaveis();   // ← CORREÇÃO: variáveis dependem do tipo de estação
+      carregarVariaveis();
     })
   );
-  // Quando muda tipo de dados: recarrega só variáveis
   document.querySelectorAll("input[name=tipo_dados]").forEach(r =>
     r.addEventListener("change", () => { deselecionarTodos("lista-variaveis"); carregarVariaveis(); })
   );
@@ -904,8 +924,6 @@ async function carregarVariaveis() {
   const tipoEstacao = document.querySelector("input[name=tipo_estacao]:checked").value;
   document.getElementById("lista-variaveis").innerHTML =
     '<div style="padding:16px;color:#9ca3af;text-align:center">Carregando...</div>';
-
-  // Passa tipo_estacao para que o backend use a estação de referência correta
   const resp = await fetch(`/api/variaveis?tipo=${tipo}&tipo_estacao=${tipoEstacao}`);
   const vars = await resp.json();
   const lista = document.getElementById("lista-variaveis");
